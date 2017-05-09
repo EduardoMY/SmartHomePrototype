@@ -1,0 +1,26 @@
+{
+  "name": "smarthomeprototype",
+  "version": "1.0.0",
+  "description": "It's a simple solution to a school project: a smart home with the feature of using a Messenger Bot to control some components inside your house",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EduardoMY/SmartHomePrototype.git"
+  },
+  "keywords": [
+    "SmartHome",
+    "Raspberry",
+    "Pi",
+    "Messenger",
+    "Bot"
+  ],
+  "author": "Eduardo Medina, Alexis Poo, Martin Padilla, Gerardo Hiram",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/EduardoMY/SmartHomePrototype/issues"
+  },
+  "homepage": "https://github.com/EduardoMY/SmartHomePrototype#readme"
+}
