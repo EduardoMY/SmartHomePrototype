@@ -2,7 +2,13 @@
   "name": "smarthomeprototype",
   "version": "1.0.0",
   "description": "It's a simple solution to a school project: a smart home with the feature of using a Messenger Bot to control some components inside your house",
-  "main": "index.js",
+    "main": "index.js",
+    "dependencies": {
+	"express": "^4.15.2",
+	"rpi-gpio": "^0.8.1",
+	"spotify-find": "^1.0.1",
+	"spotify-local-control": "^1.1.0"
+    },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
