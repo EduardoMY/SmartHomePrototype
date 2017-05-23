@@ -9,7 +9,8 @@ var find = require('spotify-find')
 var gpio = require('rpi-gpio')
 var https=require('https')
 
-var token = ''
+var token = 'BQCGRQ23qc1yIfB7u9qkVidz38Q0aTWbdSpECRxuN-rAGO1ajT_dtKsVZHwCVuOqjLB9MKshHJdMh_1jilqlnduKiotReqvhmYmWs_Rv-cgaqRGtZGhFouZ19huY0Mn9v5GbcR0QmHPy-PiLo0A4jh9VrN722VvDueE0m7437u8ztsHsm4Wv-ExHeErFtDsxSQPAKk5oPqB19hK1Mqc4lE0yHNGS8wU9y5NS9KM2OeLu7oI9LajQzFeRoKPewlmmDB-tjv8aqOOyusPlvvqsQqEKs1o6I3Ji_X4RwLs29TE5kvvJKpO2YbxpWznnNLWI76opnFHKJv0'
+
 
 app.get('/', function (req, res) {
   res.send('Hello World!')
@@ -27,30 +28,45 @@ app.get('/webhook', function(req, res) {
 });
 
 function doAction(tokens){
+    var message="Fuck Poo"
     if(tokens.length===0)
 	return "Fuck Poo 0";
-    if(tokens[0]==="Play"){
+    if(tokens[0].toUpperCase() === "PLAY"){
 	tokens.shift();
 	var song = tokens.join(' ')
 	console.log(song)
 	find({q: song, type: 'track'}).then(function(res) {
 	    console.log(res.tracks)
-	    runHTTPRequest(getOptions(1), '{"uris": ["'+res.tracks.items[0].uri+'"]}')
-	});	
+	    if(res.tracks.items.length!=0){
+		runHTTPRequest(getOptions(1), '{"uris": ["'+res.tracks.items[0].uri+'"]}')
+		message="Playing Music...";
+		return message;
+	    }
+	    else{
+		message="Track could not be found";
+		return message;
+	    }
+	    
+	});
     }
-    else if(tokens[0]=="Resume")
+    else if(tokens[0].toUpperCase() === "RESUME"){
 	runHTTPRequest(getOptions(1), "")
-    else if(tokens[0]==="Pause")
-	runHTTPRequest(getOptions(2), "")
-    else if(tokens[0]==="Next")
+	message="Song is starting"
+    }
+    else if(tokens[0].toUpperCase() === "PAUSE"){
+	runHTTPRequest(getOptions(2), "");
+	message="Song has been Paused";
+    }
+    else if(tokens[0].toUpperCase() === "NEXT")
 	runHTTPRequest(getOptions(3), "")
-    else
-	console.log('WHatDaFu')
+    else if(tokens[0].toUpperCase() === "VOLUME")
+	runHTTPRequest(getOptions(4, tokens[1]), "")
+    else console.log('WHatDaFu')
     
-    return "Fuck Poo"
+    return message;
 }
 
-function getOptions(action){
+function getOptions(action, query=""){
     var options;
     switch(action){
     case 1: //Play
@@ -72,6 +88,14 @@ function getOptions(action){
     case 3: //Next
 	options = {host:'api.spotify.com',
 		   path:'/v1/me/player/next',
+		   method:'PUT',
+		   headers: {
+		       'Authorization': 'Bearer ' + token
+		   }};
+	break;
+    case 4: //Volume
+	options = {host:'api.spotify.com',
+		   path:'/v1/me/player/volume?volume_percent=50',
 		   method:'PUT',
 		   headers: {
 		       'Authorization': 'Bearer ' + token
