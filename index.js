@@ -7,6 +7,7 @@ var express = require('express')
 var app = express()
 var find = require('spotify-find')
 var https=require('https')
+var spawn = require('child_process').spawn;
 
 var token = 'BQCGgzVG3XxEn91hvu_mGrqqgl6IloBamqhVtFCXohy53RI1oiMqbaPG9OjlGHSsQ1ARwNbkjb7do0KdeLqTVAukww-H9BjxX2n0ShGRBBSxm3dTZq1J3HWBu1NDTij386fW3pciD9kISPNq14EtSCmct0BY8c98SMluM3b9dBNNsXxDe9N0udNLDTVZtDwo1Sh9T1w2Vst0r4nmaDZnlRh8utJfnJAbO84LjD1u_75FbvvI08g39IO3Q7WCmcQFZtMOXFElpglArdbSk6KZjZlmTTrWladjGp2wVXfZrn-Oqah-qK2tDHTLnnKEaoR-jtOCuTC-Szc'
 
@@ -60,6 +61,12 @@ function doAction(tokens){
 	runHTTPRequest(getOptions(3), "")
     else if(tokens[0].toUpperCase() === "VOLUME")
 	runHTTPRequest(getOptions(4, tokens[1]), "")
+    else if(tokens[0].toUpperCase() === "LIGHTS" && tokens.length==3){
+	if(tokens[1].toUpperCase() === "OFF" || tokens[1].toUpperCase()==="ON"){
+	    spawn('python', ['lights.py', tokens[2], tokens[1].toUpperCase()==="ON" ? 1:0]);
+	    console.log("Paso")
+	}
+    }
     else console.log('WHatDaFu')
     
     return message;

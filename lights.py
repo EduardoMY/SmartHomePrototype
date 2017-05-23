@@ -1,11 +1,17 @@
 import sys
 import RPi.GPIO as GPIO
 
+'''
+target = open('example.txt', 'w')
+
+target.write('Hello')
+target.write(sys.argv[2])
+target.write(sys.argv[1])
+target.close()
+'''
+
 GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
-
-print len(sys.argv)
-print sys.argv
 
 if sys.argv[2] == 'ALL':
 	if sys.argv[1] == '1':
