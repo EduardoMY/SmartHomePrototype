@@ -6,10 +6,9 @@
 var express = require('express')
 var app = express()
 var find = require('spotify-find')
-var gpio = require('rpi-gpio')
 var https=require('https')
 
-var token = 'BQCGRQ23qc1yIfB7u9qkVidz38Q0aTWbdSpECRxuN-rAGO1ajT_dtKsVZHwCVuOqjLB9MKshHJdMh_1jilqlnduKiotReqvhmYmWs_Rv-cgaqRGtZGhFouZ19huY0Mn9v5GbcR0QmHPy-PiLo0A4jh9VrN722VvDueE0m7437u8ztsHsm4Wv-ExHeErFtDsxSQPAKk5oPqB19hK1Mqc4lE0yHNGS8wU9y5NS9KM2OeLu7oI9LajQzFeRoKPewlmmDB-tjv8aqOOyusPlvvqsQqEKs1o6I3Ji_X4RwLs29TE5kvvJKpO2YbxpWznnNLWI76opnFHKJv0'
+var token = 'BQCGgzVG3XxEn91hvu_mGrqqgl6IloBamqhVtFCXohy53RI1oiMqbaPG9OjlGHSsQ1ARwNbkjb7do0KdeLqTVAukww-H9BjxX2n0ShGRBBSxm3dTZq1J3HWBu1NDTij386fW3pciD9kISPNq14EtSCmct0BY8c98SMluM3b9dBNNsXxDe9N0udNLDTVZtDwo1Sh9T1w2Vst0r4nmaDZnlRh8utJfnJAbO84LjD1u_75FbvvI08g39IO3Q7WCmcQFZtMOXFElpglArdbSk6KZjZlmTTrWladjGp2wVXfZrn-Oqah-qK2tDHTLnnKEaoR-jtOCuTC-Szc'
 
 
 app.get('/', function (req, res) {
