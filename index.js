@@ -26,6 +26,7 @@ app.get('/webhook', function(req, res) {
 
 function changeSong(){
     console.log(queue)
+    
     if(queue.length==0){
 	clearInterval(currentSongId);
 	currentSongId=null;
@@ -39,6 +40,8 @@ function makeSongSwitch(){
     console.log('Cambio de cancion')
     console.log(tmp[0]);
     runHTTPRequest(getOptions(1), tmp[0]);
+    if(currentSongId!==null)
+	clearInterval(currentSongId);
     currentSongId=setInterval(function(){changeSong()}, Number(tmp[1]));
 }
 
@@ -66,12 +69,10 @@ function doAction(tokens){
 		    message="Playing Music...";
 		}
 		console.log(message);
-		return message;
 	    }
 	    else{
 		message="Track could not be found";
 		console.log(message);
-		return message;
 	    } 
 	});
 	message="Song has been received. ("+( queue.length + (currentSongId === null? 0 : 1))+" in queue.)."
@@ -81,7 +82,6 @@ function doAction(tokens){
 	message="Song is starting"
     }
     else if(tokens[0].toUpperCase() === "NEXT"){
-	//runHTTPRequest(getOptions(3));
 	if(queue.length !== 0){
 	    changeSong();
 	    message="Done!";
@@ -98,6 +98,7 @@ function doAction(tokens){
 	    cp.exec('python ~/Documents/SmartHomePrototype/lights.py ' + (tokens[1].toUpperCase()==="ON" ? '1':'0') + ' '+ tokens[2],
 		    function (err){console.log(err);});
 	}
+	message="LIGHTS Done!";
     }
     else
 	console.log('WHatDaFu')
