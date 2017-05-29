@@ -1,19 +1,19 @@
-'use strict';
-
-//Mozilla/5.0 (X11; Fedora; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36
-
+'use strict'; //Mozilla/5.0 (X11; Fedora; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36
 
 var express = require('express')
 var app = express()
 var find = require('spotify-find')
 var https=require('https')
-var spawn = require('child_process').spawn;
+var cp = require('child_process');
+var checkingSongId = null;
+var queue = [];
 
-var token = 'BQCGgzVG3XxEn91hvu_mGrqqgl6IloBamqhVtFCXohy53RI1oiMqbaPG9OjlGHSsQ1ARwNbkjb7do0KdeLqTVAukww-H9BjxX2n0ShGRBBSxm3dTZq1J3HWBu1NDTij386fW3pciD9kISPNq14EtSCmct0BY8c98SMluM3b9dBNNsXxDe9N0udNLDTVZtDwo1Sh9T1w2Vst0r4nmaDZnlRh8utJfnJAbO84LjD1u_75FbvvI08g39IO3Q7WCmcQFZtMOXFElpglArdbSk6KZjZlmTTrWladjGp2wVXfZrn-Oqah-qK2tDHTLnnKEaoR-jtOCuTC-Szc'
-
+var token = 'BQAdyPbbFm8SEbxXyiuwN40qK0fvYaYmD4zJO01pusxHx2ZxodwpESIsyxrD6CVrSMINzr72zvaMGZ7HTYoeDJdSjPVKztic2S79xzmQ3ufnGhZxa_5-R2_VHW9SGp0kNalu6gQ5-FogwzukH_0Jt0siR8U9WyzXM9dk1wm126kpOwBFTB4gVT9dGZheylFBjck6iXChYgeBEfKUBFsjt4ZLb3JPTKHiGbA2NLx_mxBCmWAydeN9dniHn_6YUQeGW7Y3JQMOsvTMO1hyO4vCwMX3h5VnvijPdgjvNaHhVpwP6KqRMZV7NW_GGkolLszw-Oa2h3zD8gE'
 
 app.get('/', function (req, res) {
-  res.send('Hello World!')
+    res.send('Hello World!')
+    //runHTTPRequest(getOptions(5));
+    isPlayingASong();
 })
 
 app.listen(3000, function () {
@@ -28,7 +28,7 @@ app.get('/webhook', function(req, res) {
 });
 
 function doAction(tokens){
-    var message="Fuck Poo"
+    var message="Fuck Poo";
     if(tokens.length===0)
 	return "Fuck Poo 0";
     if(tokens[0].toUpperCase() === "PLAY"){
@@ -38,33 +38,42 @@ function doAction(tokens){
 	find({q: song, type: 'track'}).then(function(res) {
 	    console.log(res.tracks)
 	    if(res.tracks.items.length!=0){
-		runHTTPRequest(getOptions(1), '{"uris": ["'+res.tracks.items[0].uri+'"]}')
-		message="Playing Music...";
+		/*
+		if(isPlayingASong()){
+		    queue.append(res.tracks.items[0].uri, res.tracks.items[0].duration_ms);
+		    message = "Your song has been queued...";
+		}
+		else{*/
+		    runHTTPRequest(getOptions(1), '{"uris": ["'+res.tracks.items[0].uri+'"]}');
+		    message="Playing Music...";
+		//}
+		console.log(message);
 		return message;
 	    }
 	    else{
 		message="Track could not be found";
+		console.log(message);
 		return message;
 	    }
-	    
 	});
     }
     else if(tokens[0].toUpperCase() === "RESUME"){
-	runHTTPRequest(getOptions(1), "")
+	runHTTPRequest(getOptions(1))
 	message="Song is starting"
     }
     else if(tokens[0].toUpperCase() === "PAUSE"){
-	runHTTPRequest(getOptions(2), "");
+	runHTTPRequest(getOptions(2));
 	message="Song has been Paused";
     }
     else if(tokens[0].toUpperCase() === "NEXT")
-	runHTTPRequest(getOptions(3), "")
+	runHTTPRequest(getOptions(3))
     else if(tokens[0].toUpperCase() === "VOLUME")
-	runHTTPRequest(getOptions(4, tokens[1]), "")
+	runHTTPRequest(getOptions(4, tokens[1]))
     else if(tokens[0].toUpperCase() === "LIGHTS" && tokens.length==3){
 	if(tokens[1].toUpperCase() === "OFF" || tokens[1].toUpperCase()==="ON"){
-	    spawn('python', ['lights.py', tokens[2], tokens[1].toUpperCase()==="ON" ? 1:0]);
-	    console.log("Paso")
+	    cp.exec('python ~/Documents/SmartHomePrototype/lights.py ' + (tokens[1].toUpperCase()==="ON" ? '1':'0') + ' '+ tokens[2],
+		    function (err){console.log(err);});
+	    console.log("Paso");
 	}
     }
     else console.log('WHatDaFu')
@@ -83,7 +92,7 @@ function getOptions(action, query=""){
 		   'Authorization': 'Bearer ' + token
 	       }};
 	break;
-    case 2://Pause
+    case 2: //Pause
 	options = {host:'api.spotify.com',
 		   path:'/v1/me/player/pause',
 		   method:'PUT',
@@ -101,19 +110,45 @@ function getOptions(action, query=""){
 	break;
     case 4: //Volume
 	options = {host:'api.spotify.com',
-		   path:'/v1/me/player/volume?volume_percent=50',
+		   path:'/v1/me/player/volume?volume_percent='+query,
 		   method:'PUT',
 		   headers: {
 		       'Authorization': 'Bearer ' + token
 		   }};
 	break;
-    default://Nothing
+    case 5: //Know Current PLaying Song
+	options = {host:'api.spotify.com',
+		   path:'/v1/me/player/currently-playing',
+		   method:'GET',
+		   headers: {
+		       'Authorization': 'Bearer ' + token
+		   }};
+	break;
+    default: //Nothing
 	options={}
 	break;
     }
     return options;
 }
-function runHTTPRequest(options, actions){
+function isPlayingASong(){
+    var bool;
+    var req = https.request(getOptions(5), (res) => {
+	res.setEncoding('utf8');
+	res.on('data', (chunk) => {
+	    var chunk_processed=JSON.parse(chunk);
+	    return !chunk_processed.is_playing && chunk_processed.progress_ms==0
+	});
+	res.on('end', () => {
+	    console.log('No more data in response.');
+	});
+    });
+    req.on('error', function(e) {
+	console.log('problem with request: ' + e.message);
+    });
+    req.end()
+    return false;
+}
+function runHTTPRequest(options, actions=""){
     var req = https.request(options, (res) => {
 	console.log(`STATUS: ${res.statusCode}`);
 	console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
