@@ -8,7 +8,7 @@ var cp = require('child_process');
 var currentSongId=null;
 var queue = [];
 
-var token = 'BQAnmcmzSwRmTymBgOzWv0767vGbzNezjk8L1Lk_DUwAxk5ZhIilDih7j9_nt5wDR0-6DuJc5xQhtiQu_edibi33IQyr9gFAbgaIamNKNXV-CGYGPeHK_5e8HMeqCAuL3HUl7lvHCLmm0HkmSb3Xnrao8wMCI8z1qpbYAZXKnHkqWm0ACdt5oXE6nudz1SHfsxTa_ojMZilXurhyid0i8a63mqavKqi8erHKShBIwCaV7mhO-zLPEste1oiBz-WVukj-tuJXr4s26N7Jpm19iUPKBIyND0P24YbPglka6jsRuUFrNFwyft6ikLV0AoY3zGAyj7qEPCU'
+var token = 'BQAJBUVnobCh3YMd4xVaKkNeyviy38anDibBCg__NIYL-8cEtvKVNUu6qE8KO_NBpsIdcDm2dpbsM9yjmn1jNfu5qamRPXIgIjrd-ZNVPjdGwDodVLQzSgHiyOW1VZFEzrCd5HjuPGeZpHxyQkmcl8khhae00jW8wAWn3LmkBtVwvlaNm5ESHyHB87OqoJanVUnE7_jF2ZReQJkqYe2kMmGoEKD7vX_g2fX0pbIOzLt90BECRX1tODMTDtb8oBk0OLXsyqiJQYDFWibxyjmz0izER1na9EBI7qhy7CBMZ4aG9m2cFweN5m_QvUcWxiAVWQS-COxj5y8'
 
 app.get('/', function (req, res) {
     res.send('Hello World!')
@@ -51,18 +51,18 @@ function doAction(tokens){
 	return ;
     if(tokens[0].toUpperCase() === "PLAY"){
 	tokens.shift();
-	var song = tokens.join(' ')
+	var song = tokens.join('+')
 	var tracksPureData="";
-	console.log(getSongs(getOptions(6, song+'&type=track')));
+//	console.log(getSongs(getOptions(6, song+'&type=track')));
 	var req = https.request(getOptions(6, song+'&type=track'), (res) => {
 	    res.setEncoding('utf8');
 	    res.on('data', (chunk) => {
 		tracksPureData += chunk;
 	    });
 	    res.on('end', () => {
-		console.log(JSON.parse(tracksPureData));
+//		console.log(JSON.parse(tracksPureData));
 		var tracks=JSON.parse(tracksPureData).tracks.items;
-		console.log(tracks);
+//		console.log(tracks);
 		play(tracks);
 	});
     });
