@@ -8,7 +8,7 @@ var cp = require('child_process');
 var currentSongId=null;
 var queue = [];
 
-var token = 'BQAT8yLj6cBwXW5oZh-ZxXedy2yCBivfuLD6sVMgbu1vPEs_v8LDl70RqhSR8RnffhWT8AcHaezyb4eCruSvn67VFyUSVil92gaa4gvVyCxGD0Nl_SDMY6cbWdxAqrvBRapkixWetBlVN3K-BBiEEkFuPh9dYlfxmCyDrPTuf4xxmshAE2aGgumWMeBcbKCt8Cr2ntS4eGNsxaRMAK2bhEVzvh28UuBm4hcXOTczoLMpJ4GF5NZ2yZ1becCfeIo_PLW5En5yRnPbT4jwhjqdGV91a4hNyXIR7gjyTFFRN-JcNwp7ebRlEJBaDpAcHqg0SOg-uC76BNY'
+var token = 'BQAnmcmzSwRmTymBgOzWv0767vGbzNezjk8L1Lk_DUwAxk5ZhIilDih7j9_nt5wDR0-6DuJc5xQhtiQu_edibi33IQyr9gFAbgaIamNKNXV-CGYGPeHK_5e8HMeqCAuL3HUl7lvHCLmm0HkmSb3Xnrao8wMCI8z1qpbYAZXKnHkqWm0ACdt5oXE6nudz1SHfsxTa_ojMZilXurhyid0i8a63mqavKqi8erHKShBIwCaV7mhO-zLPEste1oiBz-WVukj-tuJXr4s26N7Jpm19iUPKBIyND0P24YbPglka6jsRuUFrNFwyft6ikLV0AoY3zGAyj7qEPCU'
 
 app.get('/', function (req, res) {
     res.send('Hello World!')
@@ -19,7 +19,7 @@ app.listen(3000, function () {
     console.log('Example app listening on port 3000!')
 });
 
-app.get('/webhook', function(req, res) {
+app.get('/webhook', function(req, res){ 
     var action =  (req.query.param1).split(' ');
     res.send([{ "text":doAction(action)}]);
 });
@@ -52,8 +52,27 @@ function doAction(tokens){
     if(tokens[0].toUpperCase() === "PLAY"){
 	tokens.shift();
 	var song = tokens.join(' ')
-	find({q: song, type: 'track'}).then(function(res) {
-//	    console.log(res.tracks)
+	var tracksPureData="";
+	console.log(getSongs(getOptions(6, song+'&type=track')));
+	var req = https.request(getOptions(6, song+'&type=track'), (res) => {
+	    res.setEncoding('utf8');
+	    res.on('data', (chunk) => {
+		tracksPureData += chunk;
+	    });
+	    res.on('end', () => {
+		console.log(JSON.parse(tracksPureData));
+		var tracks=JSON.parse(tracksPureData).tracks.items;
+		console.log(tracks);
+		play(tracks);
+	});
+    });
+    
+    req.on('error', function(e) {
+	console.log('problem with request: ' + e.message);})
+    req.end();
+	/*find({q: song, type: 'track'}).then(function(res) {
+	  
+	    console.log(res.tracks)
 	    if(res.tracks.items.length!=0){
 		console.log('CurrentSong' + currentSongId)
 		if(currentSongId !== null){
@@ -74,7 +93,7 @@ function doAction(tokens){
 		message="Track could not be found";
 		console.log(message);
 	    } 
-	});
+	});*/
 	message="Song has been received. ("+( queue.length + (currentSongId === null? 0 : 1))+" in queue.)."
     }
     else if(tokens[0].toUpperCase() === "RESUME"){
@@ -103,6 +122,26 @@ function doAction(tokens){
     else
 	console.log('WHatDaFu')
     return message;
+}
+function play(tracks){
+    console.log(tracks)
+    if(tracks.length!=0){
+//	console.log('CurrentSong' + currentSongId)
+	if(currentSongId !== null){
+	    queue.push(['{"uris": ["' + tracks[0].uri + '"]}', tracks[0].duration_ms]);
+	    console.log('SE QUEUEO');
+	    console.log('Your song has been queued...')
+	}
+	else{
+	    currentSongId=setInterval(function(){changeSong();},
+				      Number(tracks[0].duration_ms));
+	    console.log("Assigned"+currentSongId);
+	    runHTTPRequest(getOptions(1), '{"uris": ["'+ tracks[0].uri+'"]}');
+	}
+	console.log("Playing Music ...");
+    }
+    else
+	console.log('Track could not be found');
 }
 
 function getOptions(action, query=""){
@@ -148,6 +187,15 @@ function getOptions(action, query=""){
 		       'Authorization': 'Bearer ' + token
 		   }};
 	break;
+    case 6:
+	options = {host:'api.spotify.com',
+		   path:'/v1/search?q='+query,
+		   method:'GET',
+		   headers: {
+		       'Accept': 'application/json',
+		       'Authorization': 'Bearer ' + token
+		   }};
+	break;
     default: //Nothing
 	options={}
 	break;
@@ -156,22 +204,54 @@ function getOptions(action, query=""){
 }
 
 function runHTTPRequest(options, actions=""){
+
+    console.log('About to do this');
     var req = https.request(options, (res) => {
 	console.log(`STATUS: ${res.statusCode}`);
-//	console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
+	console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
 	res.setEncoding('utf8');
 	res.on('data', (chunk) => {
-//	    console.log(`BODY: ${chunk}`);
+	    console.log(`BODY: ${chunk}`);
 	});
 	res.on('end', () => {
-//	    console.log('No more data in response.');
+	    console.log('No more data in response.');
 	});
     });
+    
     req.on('error', function(e) {
 	console.log('problem with request: ' + e.message);})
+    
     if(actions !== ""){
 	//console.log(actions)
 	req.write(actions)
     }
     req.end();
+
+}
+function getSongs(options){
+    var tracksData="";
+    var tracks;
+    var req = https.request(options, (res) => {
+//	console.log(res);
+//	console.log(`STATUS: ${res.statusCode}`);
+//	console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
+	res.setEncoding('utf8');
+	res.on('data', (chunk) => {
+	    //console.log(`BODY: ${chunk}`);
+	    tracksData+=chunk;
+	});
+	res.on('end', () => {
+	    //	    console.log('No more data in response.');
+//	    console.log(tracksData);
+	    //	    console.log(tracksData['tracks']);
+	    console.log(JSON.parse(tracksData));
+	    tracks=JSON.parse(tracksData).tracks.items;
+	    console.log(tracks);
+	});
+    });
+    
+    req.on('error', function(e) {
+	console.log('problem with request: ' + e.message);})
+    req.end();
+    return tracksData;
 }
